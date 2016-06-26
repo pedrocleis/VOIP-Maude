@@ -1,0 +1,53 @@
+Pin = 2
+PWait = 4
+PInMoreTMedio = 10
+
+gt = 50
+
+Buffer = < a(1) : 30 Waiting > , < a(2) : 20 IN >, < a(3) : 10 IN >, < a(5) : 25 Waiting>, < a(4) : 4 IN  >
+
+aplicar as funcao drop:
+
+Buffer = < a(1) : 30 Waiting 4 > , < a(2) : 20 IN 10 >, < a(3) : 10 IN 10 >, < a(5) : 25 Waiting 4>, < a(4) : 4 IN 45 >
+
+---------------------
+
+Estratégia Roleta:
+
+Passo 1: Criar Roleta:
+a(1) -> 0,3
+a(2) -> 4,13
+a(3) -> 14,23
+a(5) -> 24,27
+a(4) -> 28,73
+
+Passo 2: Jogar a bola:
+
+Selecionar aleatoriamente (uniforme) um numero X de 0,73
+
+Por exemplo, seja X = 17
+
+Passo 3: Remover onde a bola caiu
+
+Por exemplo, remover a(3)
+
+-----------------------------------
+Estratégia Torneio
+parametro: tamanho do torneio N = 4
+
+Passo 1: Criar o torneio
+Selecionar N request aleatoriamente do Buffer podendo repetir:
+
+a(1), a(3), a(3), a(2)
+
+Passo 2: Disputa no torneio usando o fator de dropagem:
+
+a(1) -> 4
+a(3) -> 10
+a(3) -> 10
+a(2) -> 10
+
+Passo 3: Selecionar um com o de maior peso:
+
+   selecionar entre: a(3) a(3) a(2)
+   por exemplo: a(2)
