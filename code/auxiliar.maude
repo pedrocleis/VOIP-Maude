@@ -1,0 +1,90 @@
+mod AUXILIAR is
+  protecting NAT .
+  protecting FLOAT .
+  protecting CONVERSION .
+  sort Contents .
+  sort Address .
+  sort Msg .
+  op _<-_ : Address Contents -> Msg . --- construtor Msg
+  sort ActiveMsg .
+  subsort ActiveMsg < Config .
+  op {_,_} : Float Msg -> ActiveMsg . --- Mensagem ativa
+
+  sort Actor .
+  sort ActorType . --- (atacante, servidor, client)
+  sorts Attribute AttributeSet .
+  subsort Attribute < AttributeSet .
+  op none : -> AttributeSet .
+  op _,_ : AttributeSet AttributeSet -> AttributeSet [assoc comm id: none] . --- Concatenar AttributeSET
+  op <name:_|_> : Address AttributeSet -> Actor . --- construtor actor
+
+  op [__] : Msg Msg -> Msg .
+  sort Config .
+  subsorts Msg ActorType Actor < Config .
+
+  sort Object .
+  subsort Actor < Object . --- Actor can be represented by a term of sort Object
+  subsort Msg < Object . --- Message can be represented by a term of sort Object
+  subsort Object < Config .
+
+--- Config
+  op none : -> Config .
+  op flag : Bool Float -> Config . ---- a flag delimiting execution rounds
+  op __ : Config Config -> Config [assoc comm id: none] . --- construtor Config
+--- END OF Config
+
+--- SCHEDULER
+  sorts Scheduler ScheduleMsg ScheduleList .
+  subsorts ScheduleMsg Scheduler < ScheduleList .
+  subsort Scheduler ScheduleMsg ScheduleList < Config .
+  subsort Msg ActiveMsg < Scheduler .
+  subsort Msg ActiveMsg < ScheduleList .
+
+  op {_|_} : Float ScheduleList -> Scheduler .
+  op  nil : -> ScheduleList .
+  op  _;_ : ScheduleList ScheduleList -> ScheduleList [assoc id: nil] .
+  op [_,_,_] : Float Msg Nat -> ScheduleMsg . --- Agendar envio de mensagem
+--- END OF SCHEDULER
+
+
+--- Scheduler Operation
+  op insert : Scheduler ScheduleMsg -> Scheduler .
+  op insert : ScheduleList ScheduleMsg -> ScheduleList .
+  op insertList : Scheduler ScheduleList -> Scheduler .
+  op insertList : ScheduleList ScheduleList -> ScheduleList .
+--- End of List Operation
+
+  op tick : Config -> Config .
+  op mytick : Scheduler -> Config .
+  op global-time : Scheduler -> Float .
+  op getTime : Config -> Float .
+
+  var t1 t2 t gt : Float .
+  var C : Config .
+  var O O1 : Object .
+  var pmod i : Nat .
+  var SL SL' : ScheduleList .
+  var e : ScheduleMsg .
+  var M1 M2 : Msg .
+
+--- { float | Msg } --> ActiveMsg .
+  eq global-time({ gt | SL }) = gt .
+  eq getTime(C {gt | SL}) = gt .
+
+  eq insert({ gt | SL },e) = { gt | insert(SL,e) } .
+  eq insert(SL , [ t2 , M2, 1 ]) = SL .
+  eq insert([ t1 , M1, pmod ] ; SL , [ t2 , M2, 0 ]) =
+       if t1 < t2 then [ t1 , M1, pmod ] ; insert(SL, [ t2 , M2, 0 ])
+                  else ([ t2 , M2, 0 ] ; [ t1 , M1, pmod ] ; SL) fi .
+  eq insert( nil , [ t2 , M2, 0 ]) = [ t2 , M2, 0 ] .
+
+
+  eq insertList({ gt | SL }, SL') = { gt | insertList(SL, SL') } .
+  eq insertList(SL , [t2 , M2, pmod] ; SL') = insertList( insert(SL, [t2, M2, pmod]), SL' ) .
+  ---eq insertList( nil , SL') = SL' .
+  eq insertList( SL , nil ) = SL .
+
+  eq mytick({ gt | [ t1 , M1, pmod ] ; SL }) = M1 { t1 | SL } .
+
+
+endm
